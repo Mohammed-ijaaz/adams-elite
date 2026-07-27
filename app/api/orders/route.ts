@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { queuePrintJob } from "@/lib/queue-print-job";
 
 export const runtime = "nodejs";
 
@@ -258,5 +259,7 @@ export async function POST(request: Request) {
       .eq("id", item.id);
   }
 
-  return NextResponse.json({ order });
+  const printQueued = await queuePrintJob("order", Number(order.id));
+
+  return NextResponse.json({ order, printQueued });
 }

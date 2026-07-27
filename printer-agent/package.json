@@ -1,0 +1,13 @@
+{
+  "name": "adams-elite-printer-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs",
+    "test-printer": "node index.mjs --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

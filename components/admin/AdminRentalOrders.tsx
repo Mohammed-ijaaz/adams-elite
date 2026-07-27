@@ -31,6 +31,7 @@ export default function AdminRentalOrders({
   const [accessToken, setAccessToken] = useState("");
   const [rentalOrders, setRentalOrders] = useState(initialRentalOrders);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [reprintingId, setReprintingId] = useState<number | null>(null);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -102,6 +103,32 @@ export default function AdminRentalOrders({
           : orderItem
       )
     );
+  };
+
+  const queueAutoPrint = async (rentalId: number) => {
+    setReprintingId(rentalId);
+
+    const response = await fetch("/api/admin/print-jobs/requeue", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        jobType: "rental",
+        recordId: rentalId,
+      }),
+    });
+
+    const result = await response.json();
+    setReprintingId(null);
+
+    if (!response.ok) {
+      alert(result.message || "Could not send rental bill to automatic printer.");
+      return;
+    }
+
+    alert(`Rental #${rentalId} was sent to the automatic printer queue.`);
   };
 
   if (checking) {
@@ -431,6 +458,17 @@ export default function AdminRentalOrders({
                         >
                           Print Bill
                         </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => queueAutoPrint(rentalOrder.id)}
+                          disabled={reprintingId === rentalOrder.id}
+                          className="mt-3 block w-full rounded-full border border-[#B87333] px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#B87333] transition hover:bg-[#B87333] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {reprintingId === rentalOrder.id
+                            ? "Sending..."
+                            : "Send to Auto Printer"}
+                        </button>
 
                         {rentalOrder.idProofUrl && (
                           <a

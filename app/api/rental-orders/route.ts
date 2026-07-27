@@ -1,6 +1,7 @@
 import { createHmac, randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { queuePrintJob } from "@/lib/queue-print-job";
 
 export const runtime = "nodejs";
 
@@ -232,8 +233,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
 
+    const printQueued = await queuePrintJob(
+      "rental",
+      Number(rentalOrder.id)
+    );
+
     return NextResponse.json({
       rentalOrder,
+      printQueued,
       idProofUrl: uploadedProof.signedUrl,
       product: {
         name: product.name,

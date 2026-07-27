@@ -28,6 +28,7 @@ export default function AdminOrders({ initialOrders }: AdminOrdersProps) {
   const [accessToken, setAccessToken] = useState("");
   const [orders, setOrders] = useState(initialOrders);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [reprintingId, setReprintingId] = useState<number | null>(null);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -99,6 +100,32 @@ export default function AdminOrders({ initialOrders }: AdminOrdersProps) {
           : orderItem
       )
     );
+  };
+
+  const queueAutoPrint = async (orderId: number) => {
+    setReprintingId(orderId);
+
+    const response = await fetch("/api/admin/print-jobs/requeue", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        jobType: "order",
+        recordId: orderId,
+      }),
+    });
+
+    const result = await response.json();
+    setReprintingId(null);
+
+    if (!response.ok) {
+      alert(result.message || "Could not send bill to automatic printer.");
+      return;
+    }
+
+    alert(`Order #${orderId} was sent to the automatic printer queue.`);
   };
 
   if (checking) {
@@ -221,6 +248,17 @@ export default function AdminOrders({ initialOrders }: AdminOrdersProps) {
                         >
                           Print Bill
                         </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => queueAutoPrint(order.id)}
+                          disabled={reprintingId === order.id}
+                          className="mt-3 block w-full rounded-full border border-[#B87333] px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#B87333] transition hover:bg-[#B87333] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {reprintingId === order.id
+                            ? "Sending..."
+                            : "Send to Auto Printer"}
+                        </button>
 
                         <Link
                           href={`/admin/orders/${order.id}/qr-slip`}
