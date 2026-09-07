@@ -1,7 +1,15 @@
-.env*
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Dependencies
 node_modules/
+
+# Next.js
 .next/
-.vercel/
-/printer-agent/.env
-/printer-agent/logs/*.log
-/printer-agent/temp/
+out/
+
+# Build
+dist/
